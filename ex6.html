@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Creative Weather App</title>
+
+<style>
+body{
+  font-family:Segoe UI;
+  text-align:center;
+  padding:40px;
+  transition:0.5s;
+  color:white;
+}
+
+/* card */
+#card{
+  margin-top:25px;
+  background:rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  padding:25px;
+  border-radius:20px;
+  width:320px;
+  margin-left:auto;
+  margin-right:auto;
+  box-shadow:0 10px 25px rgba(0,0,0,0.25);
+  animation:fade 0.7s;
+}
+
+@keyframes fade{
+  from{opacity:0; transform:translateY(15px)}
+  to{opacity:1; transform:translateY(0)}
+}
+
+input{
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  outline:none;
+  width:220px;
+  font-size:16px;
+}
+
+button{
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  background:#000000aa;
+  color:white;
+  cursor:pointer;
+  margin-left:5px;
+}
+button:hover{background:black}
+
+.loader{
+  border:5px solid #ffffff30;
+  border-top:5px solid white;
+  border-radius:50%;
+  width:35px;
+  height:35px;
+  animation:spin 1s linear infinite;
+  margin:20px auto;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+</style>
+</head>
+<body id="body">
+
+<h1>🌍 Creative Weather</h1>
+
+<input type="text" id="city" placeholder="Enter city name">
+<button onclick="getWeather()">Search</button>
+
+<div id="card"></div>
+
+<script>
+
+document.getElementById("city")
+.addEventListener("keypress",e=>{
+  if(e.key==="Enter") getWeather();
+});
+
+function setBackground(temp){
+  const body=document.getElementById("body");
+
+  if(temp<15)
+    body.style.background="linear-gradient(to right,#2193b0,#6dd5ed)";
+  else if(temp<30)
+    body.style.background="linear-gradient(to right,#56ab2f,#a8e063)";
+  else
+    body.style.background="linear-gradient(to right,#ff512f,#f09819)";
+}
+
+function getEmoji(weather){
+  weather=weather.toLowerCase();
+
+  if(weather.includes("cloud")) return "☁";
+  if(weather.includes("rain")) return "🌧";
+  if(weather.includes("clear")) return "☀";
+  if(weather.includes("snow")) return "❄";
+  if(weather.includes("storm")) return "⛈";
+  return "🌍";
+}
+
+async function getWeather(){
+
+  const city=document.getElementById("city").value;
+  const card=document.getElementById("card");
+
+  if(city===""){
+    card.innerHTML="<p>⚠ Enter city name</p>";
+    return;
+  }
+
+  card.innerHTML="<div class='loader'></div>";
+
+  const key="48b1efa48140730f1c1816dfe621fe9a";
+  const url=`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${key}`;
+
+  try{
+    const res=await fetch(url);
+    const data=await res.json();
+
+    if(data.cod!=200){
+      card.innerHTML="<p>❌ City not found</p>";
+      return;
+    }
+
+    setBackground(data.main.temp);
+
+    const emoji=getEmoji(data.weather[0].main);
+
+    card.innerHTML=`
+      <h2>${data.name}</h2>
+      <h1>${emoji} ${data.main.temp}°C</h1>
+      <p>${data.weather[0].description}</p>
+      <p>💧 Humidity: ${data.main.humidity}%</p>
+      <p>💨 Wind: ${data.wind.speed} m/s</p>
+    `;
+
+  }catch{
+    card.innerHTML="<p>⚠ Network error</p>";
+  }
+}
+</script>
+
+</body>
+</html>
